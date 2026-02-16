@@ -2,39 +2,21 @@
 id = "sieve"
 name = "Mach Sieve"
 version = "0.3.0"
-src = "src"
+dir_src = "src"
+dir_dep = "dep"
+dir_out = "out"
 target = "native"
 
 [targets.linux]
-triple = "x86_64-pc-linux-gnu"
-entrypoint = "main.mach"
-artifacts = "out/linux"
-output = "out/bin/sieve"
+os = "linux"
+isa = "x86_64"
+abi = "sysv64"
 mode = "executable"
-debug = false
-optimize = true
-emit-ast = true
-emit-ir = true
-emit-asm = true
-emit-object = true
-no-pie = false
-
-[targets.windows]
-triple = "x86_64-pc-windows-msvc"
 entrypoint = "main.mach"
-artifacts = "out/windows"
-output = "out/bin/sieve.exe"
-mode = "executable"
-debug = false
-optimize = true
-emit-ast = true
-emit-ir = true
-emit-asm = true
-emit-object = true
-no-pie = false
-link = ["kernel32.lib", "shell32.lib"]
+artifacts = "linux"
+binary = "linux/bin/sieve"
 
 [deps.mach-std]
 type = "remote"
 path = "https://github.com/octalide/mach-std"
-version = "branch/main"
+version = "branch/dev"
