@@ -1,10 +1,10 @@
 Mach Sieve
 ---
 
-An implementation of the eratosthenes sieve algorithm in Mach.
+An implementation of the Sieve of Eratosthenes in Mach.
 It is not meant to be a useful or efficient implementation, but rather a demonstration of the basic features of the Mach programming language.
 
-This project demonstrates the intended structure of a mach project, including the use of dependencies (of which the standard library is one).
+This project demonstrates the intended structure of a Mach project, including the use of dependencies (of which the standard library is one).
 
 # Building
 
@@ -18,7 +18,7 @@ To build the project, run:
 cmach build .
 ```
 
-This will compile the source files and place the resulting binary in the `out/<target>/bin/` directory.
+This will compile the source files and place the resulting binary in the `out/linux/bin/` directory.
 
 You can also run the project after building with:
 
