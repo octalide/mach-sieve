@@ -1,5 +1,6 @@
 use std.runtime;
 use std.types.bool;
+use std.types.string;
 use std.types.size;
 use std.types.result;
 use std.types.option;
@@ -76,7 +77,7 @@ fun main(argc: i64, argv: &&u8) i64 {
 
     # allocate memory for the sieve
     var a: alloc.Allocator = alloc.default();
-    val r_alloc: Result[*bool, alloc.AllocError] = alloc.allocator_alloc[bool](a, count);
+    val r_alloc: Result[*bool, alloc.AllocError] = alloc.allocator_alloc[bool](?a, count);
     if (result_is_err[*bool, alloc.AllocError](r_alloc)) {
         print.printf("error: %s\n", result_unwrap_err[*bool, alloc.AllocError](r_alloc));
         ret 1;
@@ -118,7 +119,7 @@ fun main(argc: i64, argv: &&u8) i64 {
 
     # cleanup
     vec.vector_dnit[u64](?indices);
-    alloc.allocator_free[bool](a, primes, count);
+    alloc.allocator_free[bool](?a, primes, count);
 
     ret 0;
 }
