@@ -1,154 +1,145 @@
-use          std.system.runtime;
-use          std.types.size;
-use          std.types.string;
-use          std.types.bool;
-use          std.text.parse;
-use          std.types.list;
-use          std.types.result;
-use          std.types.option;
-use console: std.io.console;
-use mem:     std.system.memory;
-use time:    std.system.time;
+use std.runtime;
 
-fun sieve(lower: u64, upper: u64, primes: []bool) Option[str] {
-    if (upper <= lower) {
-        ret some[str]("upper bound must be greater than lower bound");
+use alloc:  std.allocator;
+use page:   std.allocator.page;
+use mem:    std.memory;
+use time:   std.chrono.time;
+use dur:    std.chrono.duration;
+use print:  std.print;
+use parse:  std.text.parse;
+use vec:    std.collections.vector;
+use result: std.types.result;
+use option: std.types.option;
+
+use std.types.bool.bool;
+use std.types.bool.true;
+use std.types.bool.false;
+use std.types.string.str;
+use std.types.size.usize;
+use std.types.option.Option;
+use std.types.result.Result;
+
+# sieve: mark every prime index below limit in primes.
+# ---
+# limit: exclusive upper bound (must be >= 2)
+# primes: buffer of at least count booleans; primes[i] is true iff i is prime
+# count: length of the primes buffer
+# ret: an error message when the inputs are invalid, none otherwise
+fun sieve(limit: u64, primes: *bool, count: usize) Option[str] {
+    if (limit < 2) {
+        ret option.some[str]("limit must be at least 2");
     }
 
-    val size: u64 = upper - lower;
-
-    if (primes.len < size) {
-        ret some[str]("provided buffer size is smaller than required");
+    if (primes == nil) {
+        ret option.some[str]("provided buffer has null data pointer");
     }
 
-    if (primes.data == nil) {
-        ret some[str]("provided buffer has null data pointer");
+    if (count < limit::usize) {
+        ret option.some[str]("provided buffer is smaller than required");
     }
 
-    # mark non-primes
-    var i: u64 = lower;
-    for (i < upper) {
-        if (i <= 2) {
-            i = i + 1;
-            cnt;
-        }
+    # initialize: assume all are prime
+    mem.fill[bool](primes, true, count);
+    primes[0] = false;
+    primes[1] = false;
 
-        if (i % 2 == 0) {
-            # even numbers (except 2) are not prime
-            primes[i - lower] = false;
-            i = i + 1;
-            cnt;
-        }
-
-        # if this number is already marked as not prime, skip it
-        if (primes[i - lower] == false) {
-            i = i + 1;
-            cnt;
-        }
-
-        # remove multiples of the current number
-        var j: u64 = i * i;
-        for (j < upper) {
-            primes[j - lower] = false;
-            j = j + i;
-        }
-
-        i = i + 1;
+    # mark even numbers > 2
+    var i: u64 = 4;
+    for (i < limit) {
+        primes[i::usize] = false;
+        i = i + 2;
     }
 
-    ret none[str]();
+    # sieve odd composites
+    var p: u64 = 3;
+    for (p * p < limit) {
+        if (primes[p::usize]) {
+            var j: u64 = p * p;
+            for (j < limit) {
+                primes[j::usize] = false;
+                j = j + p;
+            }
+        }
+        p = p + 2;
+    }
+
+    ret option.none[str]();
 }
 
 $main.symbol = "main";
-fun main(args: []str) i64 {
+fun main(argc: i64, argv: **u8) i64 {
     var limit: u64 = 100000000;
-    console.print("usage: %s [limit] (default: %u)\n", args[0], limit);
+    print.printf("usage: %s [limit] (default: %u)\n", argv[0], limit);
 
-    if (args.len > 1) {
-        limit = parse_u64_dec(args[1]);
+    if (argc > 1) {
+        val r: Result[u64, str] = parse.parse_u64(argv[1], 10);
+        if (result.is_err[u64, str](r)) {
+            print.printf("error: invalid limit: %s\n", result.unwrap_err[u64, str](r));
+            ret 1;
+        }
+        limit = result.unwrap_ok[u64, str](r);
     }
 
-    console.print("finding primes up to %u\n", limit);
+    print.printf("finding primes up to %u\n", limit);
 
-    # check that limit fits in usize just in case
-    val opt_len: usize = limit :: usize;
-    if ((opt_len :: u64) != limit) {
-        console.print("error: limit is too large for this platform\n");
+    val count: usize = limit::usize;
+    if ((count::u64) != limit) {
+        print.printf("error: limit is too large for this platform\n");
+        ret 1;
+    }
+
+    # initialize a page-backed allocator
+    var a: alloc.Allocator;
+    val opt_make: Option[str] = page.make(?a);
+    if (option.is_some[str](opt_make)) {
+        print.printf("error: %s\n", option.unwrap[str](opt_make));
         ret 1;
     }
 
     # allocate memory for the sieve
-    var opt_allocate: Option[*bool] = mem.allocate[bool](opt_len);
-    if (opt_allocate.is_none()) {
-        console.print("error: memory allocation failed\n");
+    val r_alloc: Result[*bool, str] = alloc.allocate[bool](?a, count);
+    if (result.is_err[*bool, str](r_alloc)) {
+        print.printf("error: %s\n", result.unwrap_err[*bool, str](r_alloc));
         ret 1;
     }
 
-    # create a slice over the allocated memory and initialize all to true
-    var primes: []bool;
-    primes.data = opt_allocate.unwrap();
-    primes.len  = limit;
+    val primes: *bool = result.unwrap_ok[*bool, str](r_alloc);
 
-    mem.fill[bool](primes.data, true, limit :: usize);
+    # run the sieve
+    val start:   time.Time     = time.now();
+    val opt_err: Option[str]   = sieve(limit, primes, count);
+    val elapsed: dur.Duration  = time.since(start);
 
-    # perform the sieve
-    val start:     time.Duration = time.now();
-    val opt_sieve: Option[str]   = sieve(0, limit, primes);
-    val elapsed:   time.Duration = time.since(start);
-
-    # check for errors from the sieve
-    if (opt_sieve.is_some()) {
-        console.print("error: %s\n", opt_sieve.unwrap());
+    if (option.is_some[str](opt_err)) {
+        print.printf("error: %s\n", option.unwrap[str](opt_err));
         ret 1;
     }
 
-    # collect indices of primes (the prime numbers themselves)
-    var res_list_new: Result[List[u64], str] = list_new[u64](limit / 10);
-    if (res_list_new.is_err()) {
-        console.print("error: %s\n", res_list_new.unwrap_err());
-        ret 1;
-    }
-
-    val indices: List[u64] = res_list_new.unwrap_ok();
-
+    # collect prime indices
+    var indices: vec.Vector[u64] = vec.init[u64](?a);
     var i: u64 = 0;
-    for (i < primes.len) {
-        # skip 0 and 1
-        if (i <= 1) { 
-            i = i + 1;
-            cnt;
-        }
-
-        if (primes[i] == true) {
-            val err: Option[str] = indices.push(i);
-            if (err.is_some()) {
-                console.print("error: %s\n", err.unwrap());
+    for (i < limit) {
+        if (primes[i::usize]) {
+            val r_push: Result[usize, str] = vec.push[u64](?indices, i);
+            if (result.is_err[usize, str](r_push)) {
+                print.printf("error: %s\n", result.unwrap_err[usize, str](r_push));
                 ret 1;
             }
         }
-        
         i = i + 1;
     }
 
-    console.print("found:       %u\n", indices.len);
-    console.print("time taken:  %u ms\n", elapsed.milliseconds());
+    print.printf("found:       %u\n", indices.len);
+    print.printf("time taken:  %d ms\n", dur.duration_msec(elapsed));
 
     if (indices.len > 0) {
-        val opt_first: Option[u64] = indices.get(0);
-        if (opt_first.is_none()) {
-            console.print("error retrieving first prime\n");
-            ret 1;
-        }
-
-        val opt_last: Option[u64] = indices.get(indices.len - 1);
-        if (opt_last.is_none()) {
-            console.print("error retrieving last prime\n");
-            ret 1;
-        }
-
-        console.print("first prime: %u\n", opt_first.unwrap());
-        console.print("last prime:  %u\n", opt_last.unwrap());
+        print.printf("first prime: %u\n", indices.data[0]);
+        print.printf("last prime:  %u\n", indices.data[indices.len - 1]);
     }
+
+    # cleanup
+    vec.dnit[u64](?indices);
+    alloc.deallocate[bool](?a, primes, count);
 
     ret 0;
 }
