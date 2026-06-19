@@ -66,7 +66,7 @@ fun sieve(limit: u64, primes: *bool, count: usize) Option[str] {
     ret option.none[str]();
 }
 
-`symbol("main")`
+#[symbol("main")]
 fun main(argc: i64, argv: **u8) i64 {
     var limit: u64 = 100000000;
     print.printf("usage: {} [limit] (default: {})\n", argv[0], limit);
