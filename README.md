@@ -10,23 +10,23 @@ This project demonstrates the intended structure of a Mach project, including th
 
 You need the `mach` compiler. Install the latest [release](https://github.com/octalide/mach/releases) and ensure it is on your `PATH`.
 
-The standard library is vendored as a git submodule, so clone with submodules:
+Clone the repository:
 
 ```bash
-git clone --recurse-submodules https://github.com/octalide/mach-sieve
+git clone https://github.com/octalide/mach-sieve
 cd mach-sieve
 ```
 
-If you already cloned without `--recurse-submodules`, fetch it with:
+Fetch the standard library dependency:
 
 ```bash
-git submodule update --init
+mach dep pull
 ```
 
-To build the project, run:
+Build the project:
 
 ```bash
-mach build .
+mach build
 ```
 
 This compiles the source files and places the resulting binary in `out/linux/bin/sieve`.
@@ -34,6 +34,6 @@ This compiles the source files and places the resulting binary in `out/linux/bin
 You can also build and run in one step. Arguments after `--` are forwarded to the program:
 
 ```bash
-mach run .            # sieve up to the default limit
-mach run . -- 1000    # sieve up to 1000
+mach run            # sieve up to the default limit
+mach run -- 1000    # sieve up to 1000
 ```

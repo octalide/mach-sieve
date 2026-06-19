@@ -1,1 +1,3 @@
 out/
+# dep checkouts are realized by `mach dep pull`, not version-controlled
+dep/

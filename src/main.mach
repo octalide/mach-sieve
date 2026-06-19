@@ -66,21 +66,21 @@ fun sieve(limit: u64, primes: *bool, count: usize) Option[str] {
     ret option.none[str]();
 }
 
-$main.symbol = "main";
+`symbol("main")`
 fun main(argc: i64, argv: **u8) i64 {
     var limit: u64 = 100000000;
-    print.printf("usage: %s [limit] (default: %u)\n", argv[0], limit);
+    print.printf("usage: {} [limit] (default: {})\n", argv[0], limit);
 
     if (argc > 1) {
         val r: Result[u64, str] = parse.parse_u64(argv[1], 10);
         if (result.is_err[u64, str](r)) {
-            print.printf("error: invalid limit: %s\n", result.unwrap_err[u64, str](r));
+            print.printf("error: invalid limit: {}\n", result.unwrap_err[u64, str](r));
             ret 1;
         }
         limit = result.unwrap_ok[u64, str](r);
     }
 
-    print.printf("finding primes up to %u\n", limit);
+    print.printf("finding primes up to {}\n", limit);
 
     val count: usize = limit::usize;
     if ((count::u64) != limit) {
@@ -92,14 +92,14 @@ fun main(argc: i64, argv: **u8) i64 {
     var a: alloc.Allocator;
     val opt_make: Option[str] = page.make(?a);
     if (option.is_some[str](opt_make)) {
-        print.printf("error: %s\n", option.unwrap[str](opt_make));
+        print.printf("error: {}\n", option.unwrap[str](opt_make));
         ret 1;
     }
 
     # allocate memory for the sieve
     val r_alloc: Result[*bool, str] = alloc.allocate[bool](?a, count);
     if (result.is_err[*bool, str](r_alloc)) {
-        print.printf("error: %s\n", result.unwrap_err[*bool, str](r_alloc));
+        print.printf("error: {}\n", result.unwrap_err[*bool, str](r_alloc));
         ret 1;
     }
 
@@ -111,7 +111,7 @@ fun main(argc: i64, argv: **u8) i64 {
     val elapsed: dur.Duration  = time.since(start);
 
     if (option.is_some[str](opt_err)) {
-        print.printf("error: %s\n", option.unwrap[str](opt_err));
+        print.printf("error: {}\n", option.unwrap[str](opt_err));
         ret 1;
     }
 
@@ -122,19 +122,19 @@ fun main(argc: i64, argv: **u8) i64 {
         if (primes[i::usize]) {
             val r_push: Result[usize, str] = vec.push[u64](?indices, i);
             if (result.is_err[usize, str](r_push)) {
-                print.printf("error: %s\n", result.unwrap_err[usize, str](r_push));
+                print.printf("error: {}\n", result.unwrap_err[usize, str](r_push));
                 ret 1;
             }
         }
         i = i + 1;
     }
 
-    print.printf("found:       %u\n", indices.len);
-    print.printf("time taken:  %d ms\n", dur.duration_msec(elapsed));
+    print.printf("found:       {}\n", indices.len);
+    print.printf("time taken:  {} ms\n", dur.duration_msec(elapsed));
 
     if (indices.len > 0) {
-        print.printf("first prime: %u\n", indices.data[0]);
-        print.printf("last prime:  %u\n", indices.data[indices.len - 1]);
+        print.printf("first prime: {}\n", indices.data[0]);
+        print.printf("last prime:  {}\n", indices.data[indices.len - 1]);
     }
 
     # cleanup

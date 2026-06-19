@@ -1,22 +1,21 @@
 [project]
-id = "sieve"
-name = "Mach Sieve"
-version = "0.3.0"
-dir_src = "src"
-dir_dep = "dep"
-dir_out = "out"
-target = "native"
+id      = "sieve"
+name    = "Mach Sieve"
+version = "0.4.0"
+src     = "src"
+dep     = "dep"
+target  = "native"
+out     = "out/{target}/bin/{name}{ext}"
+obj     = "out/{target}/obj"
 
-[targets.linux]
-os = "linux"
+[target.linux]
 isa = "x86_64"
+os  = "linux"
 abi = "sysv64"
-mode = "executable"
-entrypoint = "main.mach"
-artifacts = "linux"
-binary = "linux/bin/sieve"
+
+[bin.sieve]
+entry = "main.mach"
 
 [deps.mach-std]
-type = "remote"
-path = "https://github.com/octalide/mach-std"
-version = "branch/dev"
+git = "https://github.com/octalide/mach-std"
+ref = "branch/main"
