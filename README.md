@@ -26,7 +26,7 @@ mach dep pull
 Build the project:
 
 ```bash
-mach build
+mach build .
 ```
 
 This compiles the source files and places the resulting binary in `out/linux/bin/sieve`.
@@ -34,6 +34,6 @@ This compiles the source files and places the resulting binary in `out/linux/bin
 You can also build and run in one step. Arguments after `--` are forwarded to the program:
 
 ```bash
-mach run            # sieve up to the default limit
-mach run -- 1000    # sieve up to 1000
+mach run .          # sieve up to the default limit
+mach run . -- 1000  # sieve up to 1000
 ```
