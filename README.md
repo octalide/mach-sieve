@@ -8,7 +8,7 @@ This project demonstrates the intended structure of a Mach project, including th
 
 # Building
 
-You need the `mach` compiler. Install the latest [release](https://github.com/octalide/mach/releases) and ensure it is on your `PATH`.
+You need the `mach` compiler. Install the latest [release](https://github.com/briar-systems/mach/releases) and ensure it is on your `PATH`.
 
 Clone the repository:
 
